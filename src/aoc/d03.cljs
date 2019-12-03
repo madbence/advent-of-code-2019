@@ -47,3 +47,19 @@
        (reduce intersection)
        (map distance)
        (reduce min)))
+
+(defn get-steps [pos path]
+  (->> (map vector path (iterate inc 1))
+       (filter #(= (first %) pos))
+       first
+       second))
+
+(defn b [input]
+  (let [paths (->> input
+                   ->lines
+                   (map parse-line)
+                   (map ->path))
+        intersections (reduce intersection (map #(into #{} %) paths))]
+    (->> intersections
+         (map #(+ (get-steps % (first paths)) (get-steps % (second paths))))
+         (reduce min))))
