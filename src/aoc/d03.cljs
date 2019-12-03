@@ -2,37 +2,31 @@
   (:require [aoc.utils :refer [->lines]]
             [clojure.set :refer [intersection]]))
 
+(def ops {:u [:y +]
+          :d [:y -]
+          :r [:x +]
+          :l [:x -]})
+
 (defn ->segment [move pos]
-  (case (:dir move)
-    :u (->> (range 1 (inc (:count move)))
-            (map #(assoc pos :y (+ (:y pos) %))))
-    :d (->> (range 1 (inc (:count move)))
-            (map #(assoc pos :y (- (:y pos) %))))
-    :l (->> (range 1 (inc (:count move)))
-            (map #(assoc pos :x (- (:x pos) %))))
-    :r (->> (range 1 (inc (:count move)))
-            (map #(assoc pos :x (+ (:x pos) %))))))
+  (->> (range 1 (inc (:count move)))
+       (map (fn [n]
+              (let [[axis op] ((:dir move) ops)]
+                (assoc pos axis (op (axis pos) n)))))))
 
 (defn ->path [moves]
-  (loop [path #{}
-         pos {:x 0 :y 0}
+  (loop [path [{:x 0 :y 0}]
          moves moves]
     (if (empty? moves)
-      path
+      (rest path)
       (let [curr (first moves)
+            pos (last path)
             segment (->segment curr pos)
             tail (rest moves)]
         (recur (into path segment)
-               (last segment)
                tail)))))
 
 (defn distance [point]
   (+ (.abs js/Math (:x point)) (.abs js/Math (:y point))))
-
-(defn nearest [points]
-  (->> points
-       (map distance)
-       (reduce min)))
 
 (defn parse-move [move]
   (let [match (.match move #"(.)(\d+)")]
@@ -49,5 +43,7 @@
        ->lines
        (map parse-line)
        (map ->path)
+       (map #(into #{} %))
        (reduce intersection)
-       nearest))
+       (map distance)
+       (reduce min)))
