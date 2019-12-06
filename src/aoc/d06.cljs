@@ -6,15 +6,16 @@
 (defn get-length [m n]
   (if (= n "COM")
     0
-    (inc (get-length m (get m n)))))
+    (-> (get-length m (get m n)) inc)))
 
 (defn get-orbit-lengths [m]
   (map #(get-length m (first %)) m))
 
 (defn get-neighbours [graph node]
-  (into (if (= node "COM") [] [(get graph node)]) (->> graph
-                                                  (filter (fn [[a b]] (= b node)))
-                                                  (map first))))
+  (into (if (= node "COM") [] [(get graph node)])
+        (->> graph
+             (filter (fn [[a b]] (= b node)))
+             (map first))))
 
 (defn bfs [from to graph]
   (loop [visited #{}
