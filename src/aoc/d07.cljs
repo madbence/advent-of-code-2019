@@ -77,6 +77,21 @@
         state
         (recur state')))))
 
+(defn run-intcode-until-out [state]
+  (loop [state state]
+    (let [state' (step-intcode state)]
+      (if (nil? state')
+        state
+        (if (empty? (:output state'))
+          (recur state')
+          state')))))
+
+(defn init-intcode [code input]
+  {:input input
+   :output '()
+   :code code
+   :ip 0})
+
 (defn ->intcode [input]
   (->> (.split input ",") (map ->int) (into [])))
 
@@ -98,6 +113,28 @@
         (:output $)
         (first $)))
 
+(defn run-amplifiers-loop [code [a b c d e]]
+  (let [intcode (init-intcode code [])]
+    (loop [a (update intcode :input conj a)
+           b (update intcode :input conj b)
+           c (update intcode :input conj c)
+           d (update intcode :input conj d)
+           e (update intcode :input conj e)
+           init 0]
+      (let [a' (run-intcode-until-out (update a :input conj init))
+            b' (run-intcode-until-out (update b :input conj (first (:output a'))))
+            c' (run-intcode-until-out (update c :input conj (first (:output b'))))
+            d' (run-intcode-until-out (update d :input conj (first (:output c'))))
+            e' (run-intcode-until-out (update e :input conj (first (:output d'))))]
+        (if (= (:output e') (:output e))
+          init
+          (recur (assoc a' :output '())
+                 (assoc b' :output '())
+                 (assoc c' :output '())
+                 (assoc d' :output '())
+                 (assoc e' :output '())
+                 (first (:output e'))))))))
+
 (defn a [input]
   (let [code (->intcode input)
         r (range 0 5)]
@@ -108,4 +145,16 @@
                e r
                :when (= (count (conj #{} a b c d e)) 5)] [a b c d e])
          (map #(run-amplifiers code %))
+         (reduce max))))
+
+(defn b [input]
+  (let [code (->intcode input)
+        r (range 5 10)]
+    (->> (for [a r
+               b r
+               c r
+               d r
+               e r
+               :when (= (count (conj #{} a b c d e)) 5)] [a b c d e])
+         (map #(run-amplifiers-loop code %))
          (reduce max))))
