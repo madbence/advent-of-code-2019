@@ -99,3 +99,9 @@
        init-intcode
        (run-intcode '(1))
        :output))
+
+(defn b [input]
+  (->> (->intcode input)
+       init-intcode
+       (run-intcode '(2))
+       :output))
