@@ -3,6 +3,7 @@
 
 (defn ->intcode [source]
   {:memory (->> (.split source ",") (map ->int) (map vector (iterate inc 0)) (into {}))
+   :base 0
    :ip 0
    :input '()
    :output '()})
@@ -21,12 +22,14 @@
 
 (defn get-param [state n]
   (case (get-param-mode state n)
-    0 (read-memory state (+ (:ip state) 1 n))))
+    0 (read-memory state (+ (:ip state) 1 n))
+    2 (+ (:base state) (read-memory state (+ (:ip state) 1 n)))))
 
 (defn get-value [state n]
   (case (get-param-mode state n)
     0 (read-memory state (read-memory state (+ (:ip state) 1 n)))
-    1 (read-memory state (+ (:ip state) 1 n))))
+    1 (read-memory state (+ (:ip state) 1 n))
+    2 (read-memory state (+ (:base state) (read-memory state (+ (:ip state) 1 n))))))
 
 (defn step-intcode [state]
   (case (mod (get (:memory state) (:ip state)) 100)
@@ -53,7 +56,13 @@
     8 (-> state
           (update :ip + 4)
           (write-memory (get-param state 2) (if (= (get-value state 0) (get-value state 1)) 1 0)))
+    9 (-> state
+          (update :ip + 2)
+          (update :base + (get-value state 0)))
     nil))
 
 (defn run-intcode [state]
   (->> (iterate step-intcode state) (take-while some?) last))
+
+(defn run-intcode-while [state pred]
+  (->> (iterate step-intcode state) (drop-while pred) first))
