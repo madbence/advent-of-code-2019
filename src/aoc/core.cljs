@@ -33,7 +33,8 @@
               :d09a d09/a
               :d09b d09/b
               :d10a d10/a
-              :d11a d11/a}
+              :d11a d11/a
+              :d11b d11/b}
         day (keyword (str (first args) (second args)))
         input (read-input (first args))]
     (println ((day days) input))))
