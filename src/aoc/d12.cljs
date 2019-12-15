@@ -1,5 +1,5 @@
 (ns aoc.d12
-  (:require [aoc.utils :refer [->int]]))
+  (:require [aoc.utils :refer [->int lcm]]))
 
 (defn parse-moon [line]
   (->> (.match line #"<x=(-?\d+), y=(-?\d+), z=(-?\d+)>")
@@ -29,6 +29,23 @@
   (* (->> (first moon) (map abs) (reduce +))
      (->> (second moon) (map abs) (reduce +))))
 
+(defn slice-axis [moons n]
+  (map #(vector (nth (first %) n) (nth (second %) n)) moons))
+
+(defn find-repeated-state-on [n state]
+  (->> (iterate step-moons state)
+       rest
+       (take-while (fn [state'] (not= (slice-axis state' n) (slice-axis state n))))
+       count
+       inc))
+
+(defn find-repeated-state [state]
+  (lcm
+    (find-repeated-state-on 0 state)
+    (lcm
+      (find-repeated-state-on 1 state)
+      (find-repeated-state-on 2 state))))
+
 (defn a [input]
   (->> (.split input "\n")
        drop-last
@@ -39,3 +56,10 @@
        first
        (map total-energy)
        (reduce +)))
+
+(defn b [input]
+  (->> (.split input "\n")
+       drop-last
+       (map parse-moon)
+       (map #(vector % [0 0 0]))
+       find-repeated-state))
