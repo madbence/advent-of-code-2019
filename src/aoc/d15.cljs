@@ -52,25 +52,6 @@
          pos {:x 0 :y 0}
          m {pos 1}
          dir 1]
-    ; (display-map m pos)
-    (let [to-left (step pos (left dir))
-          forward (step pos dir)
-          left-tile (get m to-left 1)
-          forward-tile (get m forward 1)
-          final-dir (cond (> left-tile 0) (left dir)
-                          (> forward-tile 0) dir
-                          :else (right dir))
-          [m' state' pos' reply] (step-robot m state pos final-dir)]
-      (case reply
-        0 (recur state' pos' m' (right dir))
-        1 (recur state' pos' m' final-dir)
-        2 [pos' m']))))
-
-(defn expore-full [state]
-  (loop [state state
-         pos {:x 0 :y 0}
-         m {pos 1}
-         dir 1]
     ;(display-map m pos)
     (let [to-left (step pos (left dir))
           forward (step pos dir)
@@ -87,7 +68,7 @@
           1 (recur state' pos' m' final-dir)
           2 (recur state' pos' m' final-dir))))))
 
-(defn find-path-length [from [target m]]
+(defn find-path-length [from target m]
   (loop [queue [from]
          discovered #{from}
          path {}]
@@ -105,19 +86,23 @@
                  (into discovered neighbours)
                  (into path (map (fn [n] [n pos]) neighbours))))))))
 
+(defn find-path-length-to-oxygen [m]
+  (let [target (first (first (filter #(= 2 (second %)) m)))]
+    (find-path-length {:x 0 :y 0} target m)))
+
 (defn find-longest-path [m]
   (let [target (first (first (filter #(= 2 (second %)) m)))]
     (->> m
          (filter #(= 1 (second %)))
-         (map #(find-path-length target [(first %) m]))
+         (map #(find-path-length target (first %) m))
          (reduce max))))
 
 (defn a [input]
   (->> (->intcode input)
        expore
-       (find-path-length {:x 0 :y 0})))
+       find-path-length-to-oxygen))
 
 (defn b [input]
   (->> (->intcode input)
-       expore-full
+       expore
        find-longest-path))
