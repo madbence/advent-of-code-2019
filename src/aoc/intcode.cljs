@@ -66,3 +66,6 @@
 
 (defn run-intcode-while [state pred]
   (->> (iterate step-intcode state) (drop-while pred) first))
+
+(defn run-intcode-until-input [state]
+  (->> (iterate step-intcode state) (take-while some?) (drop-while #(not= 3 (mod (get (:memory %) (:ip %)) 100))) first))
