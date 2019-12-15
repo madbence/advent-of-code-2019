@@ -12,6 +12,7 @@
             [aoc.d10 :as d10]
             [aoc.d11 :as d11]
             [aoc.d12 :as d12]
+            [aoc.d13 :as d13]
             [aoc.utils :refer [read-input]]))
 
 (defn -main [& args]
@@ -37,7 +38,8 @@
               :d11a d11/a
               :d11b d11/b
               :d12a d12/a
-              :d12b d12/b}
+              :d12b d12/b
+              :d13a d13/a}
         day (keyword (str (first args) (second args)))
         input (read-input (first args))]
     (println ((day days) input))))
